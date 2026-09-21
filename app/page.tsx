@@ -9,6 +9,91 @@ export default function Home() {
 
   const isArabic = language === "ar";
 const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+const [activeGallery, setActiveGallery] = useState<
+  "bouquets" | "gifts" | "occasions" | null
+>(null);
+const galleryImages = {
+  bouquets: [
+    "02.jpg",
+    "03.jpg",
+    "04.jpg",
+    "08.jpg",
+    "026.jpg",
+    "027.jpg",
+    "031.jpg",
+    "032.jpg",
+    "033.jpg",
+    "037.jpg",
+    "038.jpg",
+    "040.jpg",
+    "047.jpg",
+    "048.jpg",
+    "049.jpg",
+    "graduation-pink.jpg",
+    "red-white-bouquet.jpg",
+    "white-tulips.jpg",
+  ],
+
+  gifts: [
+    "01.jpg",
+    "05.jpg",
+    "07.jpg",
+    "09.jpg",
+    "012.jpg",
+    "013.jpg",
+    "014.jpg",
+    "019.jpg",
+    "023.jpg",
+    "025.jpg",
+    "028.jpg",
+    "029.jpg",
+    "030.jpg",
+    "034.jpg",
+    "039.jpg",
+    "042.jpg",
+    "043.jpg",
+    "046.jpg",
+    "gift-basket.jpg",
+  ],
+
+  occasions: [
+    "06.jpg",
+    "010.jpg",
+    "011.jpg",
+    "015.jpg",
+    "016.jpg",
+    "017.jpg",
+    "018.jpg",
+    "020.jpg",
+    "021.jpg",
+    "022.jpg",
+    "024.jpg",
+    "035.jpg",
+    "036.jpg",
+    "041.jpg",
+    "044.jpg",
+    "045.jpg",
+    "050.jpg",
+  ],
+};
+useEffect(() => {
+  if (!activeGallery) return;
+
+  document.body.style.overflow = "hidden";
+
+  const handleEscape = (event: KeyboardEvent) => {
+    if (event.key === "Escape") {
+      setActiveGallery(null);
+    }
+  };
+
+  window.addEventListener("keydown", handleEscape);
+
+  return () => {
+    document.body.style.overflow = "";
+    window.removeEventListener("keydown", handleEscape);
+  };
+}, [activeGallery]);
   useEffect(() => {
     const savedLanguage = localStorage.getItem("louisiana-language");
 
@@ -332,29 +417,33 @@ const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 {/* Collections Grid */}
 <div className="mt-16 grid gap-5 md:grid-cols-3 lg:mt-20">
   {[
-    {
-      image: "/images/louisiana/bouquets.jpg",
-      ar: "باقات الورد",
-      en: "Flower Bouquets",
-      number: "01",
-    },
-    {
-      image: "/images/louisiana/gifts.jpg",
-      ar: "الهدايا",
-      en: "Gifts",
-      number: "02",
-    },
-    {
-      image: "/images/louisiana/occasions.jpg",
-      ar: "المناسبات",
-      en: "Occasions",
-      number: "03",
-    },
-  ].map((item) => (
+  {
+    image: "/images/louisiana/bouquets.jpg",
+    ar: "باقات الورد",
+    en: "Flower Bouquets",
+    number: "01",
+    gallery: "bouquets" as const,
+  },
+  {
+    image: "/images/louisiana/gifts.jpg",
+    ar: "الهدايا",
+    en: "Gifts",
+    number: "02",
+    gallery: "gifts" as const,
+  },
+  {
+    image: "/images/louisiana/occasions.jpg",
+    ar: "المناسبات",
+    en: "Occasions",
+    number: "03",
+    gallery: "occasions" as const,
+  },
+].map((item) => (
     <div
-      key={item.number}
-      className="group relative h-[520px] overflow-hidden"
-    >
+  key={item.number}
+  onClick={() => setActiveGallery(item.gallery)}
+  className="group relative h-[520px] cursor-pointer overflow-hidden"
+>
       <Image
         src={item.image}
         alt={isArabic ? item.ar : item.en}
@@ -712,6 +801,61 @@ rel="noreferrer"
 
   </div>
 </footer>
+{/* ================= GALLERY MODAL ================= */}
+{activeGallery && (
+  <div
+    className="fixed inset-0 z-[100] overflow-y-auto bg-black/90 px-4 py-10 backdrop-blur-sm"
+    onClick={() => setActiveGallery(null)}
+  >
+    <div
+      className="mx-auto max-w-6xl"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* Header */}
+      <div className="mb-8 flex items-center justify-between">
+        <h2 className="font-serif text-2xl text-white md:text-3xl">
+          {activeGallery === "bouquets"
+            ? isArabic
+              ? "باقات الورد"
+              : "Flower Bouquets"
+            : activeGallery === "gifts"
+            ? isArabic
+              ? "الهدايا"
+              : "Gifts"
+            : isArabic
+            ? "المناسبات"
+            : "Occasions"}
+        </h2>
+
+        <button
+          onClick={() => setActiveGallery(null)}
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-white/20 text-2xl text-white transition hover:border-[#D6B36A] hover:text-[#D6B36A]"
+          aria-label="Close gallery"
+        >
+          ×
+        </button>
+      </div>
+
+      {/* Images */}
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+        {galleryImages[activeGallery].map((image, index) => (
+          <div
+            key={image}
+            className="relative aspect-[4/5] overflow-hidden bg-white/5"
+          >
+            <Image
+              src={`/images/louisiana/${activeGallery}-gallery/${image}`}
+              alt={`${activeGallery} ${index + 1}`}
+              fill
+              className="object-cover transition duration-500 hover:scale-105"
+              sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+)}
     </main>
   );
 }
