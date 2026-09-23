@@ -2,80 +2,46 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 
+type Product = {
+  id: number;
+  name_ar: string;
+  name_en: string;
+  category: "bouquets" | "gifts" | "occasions";
+  image_url: string;
+  is_active: boolean;
+  sort_order: number;
+};
 export default function Home() {
   const [language, setLanguage] = useState<"ar" | "en">("ar");
   const [languageReady, setLanguageReady] = useState(false);
 
   const isArabic = language === "ar";
+  const [products, setProducts] = useState<Product[]>([]);
 const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 const [activeGallery, setActiveGallery] = useState<
   "bouquets" | "gifts" | "occasions" | null
 >(null);
-const galleryImages = {
-  bouquets: [
-    "02.jpg",
-    "03.jpg",
-    "04.jpg",
-    "08.jpg",
-    "026.jpg",
-    "027.jpg",
-    "031.jpg",
-    "032.jpg",
-    "033.jpg",
-    "037.jpg",
-    "038.jpg",
-    "040.jpg",
-    "047.jpg",
-    "048.jpg",
-    "049.jpg",
-    "graduation-pink.jpg",
-    "red-white-bouquet.jpg",
-    "white-tulips.jpg",
-  ],
 
-  gifts: [
-    "01.jpg",
-    "05.jpg",
-    "07.jpg",
-    "09.jpg",
-    "012.jpg",
-    "013.jpg",
-    "014.jpg",
-    "019.jpg",
-    "023.jpg",
-    "025.jpg",
-    "028.jpg",
-    "029.jpg",
-    "030.jpg",
-    "034.jpg",
-    "039.jpg",
-    "042.jpg",
-    "043.jpg",
-    "046.jpg",
-    "gift-basket.jpg",
-  ],
+useEffect(() => {
+  const loadProducts = async () => {
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .eq("is_active", true)
+      .order("created_at", { ascending: false });
 
-  occasions: [
-    "06.jpg",
-    "010.jpg",
-    "011.jpg",
-    "015.jpg",
-    "016.jpg",
-    "017.jpg",
-    "018.jpg",
-    "020.jpg",
-    "021.jpg",
-    "022.jpg",
-    "024.jpg",
-    "035.jpg",
-    "036.jpg",
-    "041.jpg",
-    "044.jpg",
-    "045.jpg",
-    "050.jpg",
-  ],
-};
+    if (error) {
+      console.error("Error loading products:", error);
+      return;
+    }
+
+    setProducts(data ?? []);
+  };
+
+  loadProducts();
+}, []);
 useEffect(() => {
   if (!activeGallery) return;
 
@@ -838,21 +804,21 @@ rel="noreferrer"
 
       {/* Images */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-        {galleryImages[activeGallery].map((image, index) => (
-          <div
-            key={image}
-            className="relative aspect-[4/5] overflow-hidden bg-white/5"
-          >
-            <Image
-              src={`/images/louisiana/${activeGallery}-gallery/${image}`}
-              alt={`${activeGallery} ${index + 1}`}
-              fill
-              className="object-cover transition duration-500 hover:scale-105"
-              sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            />
-          </div>
-        ))}
+  {products
+    .filter((product) => product.category === activeGallery)
+    .map((product) => (
+      <div
+        key={product.id}
+        className="relative aspect-[4/5] overflow-hidden bg-white/5"
+      >
+        <img
+          src={product.image_url}
+          alt={isArabic ? product.name_ar : product.name_en}
+          className="h-full w-full object-cover transition duration-500 hover:scale-105"
+        />
       </div>
+    ))}
+</div>
     </div>
   </div>
 )}
